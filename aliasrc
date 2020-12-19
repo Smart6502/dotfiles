@@ -1,0 +1,10 @@
+alias	\
+	pkgs="pacman -Q | wc -l"\
+	cleanpkg="sudo pacman -Rns $(pacman -Qtdq)"\
+	repos="cd ~/GitRepos"	\
+	f="$FILE"		\
+	e="$EDITOR"		\
+	b="$BROWSER"		\
+	myip="curl ipinfo.io/ip"\
+	ls="ls -hN --color=auto --group-directories-first"
+
