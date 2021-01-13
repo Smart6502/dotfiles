@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rofi -no-config -no-lazy-grab -show run -theme .local/bin/rofi/launcher.rasi

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+termite -e "man $(man -k . | awk '{ print $1 }' | dmenu -l 30 -sb "#5E81AC")"
+

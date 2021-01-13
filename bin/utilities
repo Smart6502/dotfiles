@@ -1,0 +1,4 @@
+
+alias weather="curl wttr.in/?0nqF"
+alias we2="curl wttr.in/?1nqF"
+
