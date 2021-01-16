@@ -52,14 +52,10 @@ for param in "$@"; do
 
 done
 
-flushch="true"
-zoom=150
-guicmd="sxiv -btioz $zoom"
-
 echo -n "Search: "
 read -r query
 
-if [ -z "$query" ]; then exit; fi 
+[ -z "$query" ] && exit 1
 # sanitise the query
 query=$(sed \
 	-e 's|+|%2B|g'\
