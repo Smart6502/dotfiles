@@ -1,14 +1,64 @@
 #!/bin/bash
 # depends: ytdl, mpv, sxiv
 
+flushch=true
+zoom=150
+guicmd="sxiv -btioz $zoom"
+geobypass=false
+
+while [ -n "$1" ]; do # BETA
+
+	case "$1" in
+
+	-f) echo "Not flushing cache.." ; flushch=false ;;
+
+	-g) echo "Using geo-bypass method.." ; geobypass=true ;;
+
+	-p)	
+		param="$2"
+		echo "Player options given: $param"
+		pops="$param"
+		shift
+		;;
+
+	-o)
+		param="$2"	
+		echo "YTDL options passed: $param"
+		yops+=" $param"
+		shift
+		;;
+
+	--)
+		shift
+
+		break
+		;;
+
+	*) echo "Option $1 not recognized" && exit 1 ;;
+
+	esac
+
+	shift
+
+done
+
+total=1
+
+for param in "$@"; do
+
+	echo "#$total: $param"
+
+	total=$(($total + 1))
+
+done
+
 flushch="true"
-guicmd="sxiv -btio"
-if [ -z "$*" ]; then 
-	echo -n "Search: "
-	read -r query
-else
-	query="$*"
-fi
+zoom=150
+guicmd="sxiv -btioz $zoom"
+
+echo -n "Search: "
+read -r query
+
 if [ -z "$query" ]; then exit; fi 
 # sanitise the query
 query=$(sed \
@@ -35,7 +85,7 @@ videolink="https://youtube.com/watch?v="
 playlink="https://youtube.com/playlist?list="
 cachedir="/home/$USER/.local/bin/.yt-img-cache"
 [ -d $cachedir ] || mkdir -p $cachedir
-[ $flushch == "true" ] && rm $cachedir/*jpg && echo "Cache was flushed successfully" || echo "Cache wasn't flushed: man"
+[ $flushch ] && rm $cachedir/*jpg && echo "Cache was flushed successfully" || echo "Cache wasn't flushed: man"
 
 gthumb() {
 	local id=$1
@@ -43,8 +93,11 @@ gthumb() {
 	[ -f $id.jpg ] || curl -s $imgurl -o $cachedir/$id.jpg
 	echo "Thumbnail received - $id.jpg"
 }
+noch() {
+	echo "No choice given, aborting.."
+	exit 1
+}
 echo -e "$ids" >> $cachedir/.cheterm
-alids=
 
 # cat $cachedir/.cheterm
 cat $cachedir/.cheterm | while read resline || [[ -n $resline ]];
@@ -66,17 +119,26 @@ rm $cachedir/.chid
 
 echo -e "\nm to mark a video and q to exit selector and start playing it\n\n"
 
+playvid() {
+	TLF="$cachedir/.logged"
+	rm "$TLF"
+	> "$TLF"
+	nohup mpv $1 &> "$TLF" & tail -f "$TLF" &
+}
+
 while true; do
 	while ! [ -z $(pidof mpv) ]; do sleep 5; done
 	echo "Choose to play: "
 	[ -z $(pidof mpv) ] && id=$(ls $cachedir/*jpg | $guicmd)
+
 	id=${id:(-15)}
-	id=${id:0:(-4)}	
+	[ -z $id ] && exit 1
+	id=${id:0:(-4)}
 	case $id in
 		# 11 digit id = video
-		???????????) mpv "$videolink$id" & disown  ;;
+		???????????) playvid "$videolink$id" ;;
 		# 34 digit id = playlist
-		??????????????????????????????????) mpv "$playlink$id" & disown ;;
+		??????????????????????????????????) playvid "$playlink$id" ;;
 		*) exit ;;
 	esac
 done
