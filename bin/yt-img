@@ -1,16 +1,34 @@
 #!/bin/bash
 # depends: ytdl, mpv, sxiv
+# bug: sometimes the sxiv reappears after video selection [ yet to be fixed ]
 
 flushch=true
 zoom=150
+volume=60
 guicmd="sxiv -btioz $zoom"
 geobypass=false
+format=best
 
-while [ -n "$1" ]; do # BETA
+{
+	# selectorcolors REQUIRE either ricing config.h OR using Xresources
+	col0=
+	col1=
+	col2=
+} # Colors
+
+while [ -n "$1" ]; do
 
 	case "$1" in
+	
+	-a) echo "Using only AUDIO" ; pops+=" --no-video " ;;
 
-	-f) echo "Not flushing cache.." ; flushch=false ;;
+	-c) echo "Not flushing cache.." ; flushch=false ;;
+
+	-f) 	param="$2"
+		echo "Format given: $param"
+		format="$param"
+		shift
+		;;
 
 	-g) echo "Using geo-bypass method.." ; geobypass=true ;;
 
@@ -21,16 +39,8 @@ while [ -n "$1" ]; do # BETA
 		shift
 		;;
 
-	-o)
-		param="$2"	
-		echo "YTDL options passed: $param"
-		yops+=" $param"
-		shift
-		;;
-
 	--)
 		shift
-
 		break
 		;;
 
@@ -56,7 +66,6 @@ echo -n "Search: "
 read -r query
 
 [ -z "$query" ] && exit 1
-# sanitise the query
 query=$(sed \
 	-e 's|+|%2B|g'\
 	-e 's|#|%23|g'\
@@ -73,11 +82,13 @@ getresults() {
 	  grep -oP "$1" <<< "$response" |\
 		awk -F\" -v p="$2" '{ print $1 "\t" p " " $NF}'
 }
+bold=$(tput bold)
+norm=$(tput sgr0)
 videoids=$(getresults "$vgrep")
 playlistids=$(getresults "$pgrep" "(playlist)")
 [ -n "$playlistids" ] && ids="$playlistids\n"
 [ -n "$videoids" ] && ids="$ids$videoids"
-videolink="https://youtube.com/watch?v="
+videolink="https://youtu.be/"
 playlink="https://youtube.com/playlist?list="
 cachedir="/home/$USER/.local/bin/.yt-img-cache"
 [ -d $cachedir ] || mkdir -p $cachedir
@@ -93,15 +104,12 @@ noch() {
 	echo "No choice given, aborting.."
 	exit 1
 }
-echo -e "$ids" >> $cachedir/.cheterm
 
-# cat $cachedir/.cheterm
-cat $cachedir/.cheterm | while read resline || [[ -n $resline ]];
+echo -e "$ids" | while read resline || [[ -n $resline ]];
 do
 	tmpid="$(printf "${resline:0:11}") "
 	printf "$tmpid" >> $cachedir/.chid
 done
-rm $cachedir/.cheterm
 
 clear
 echo "Fetching thumbnails..."
@@ -119,17 +127,18 @@ playvid() {
 	TLF="$cachedir/.logged"
 	rm "$TLF"
 	> "$TLF"
-	nohup mpv $1 &> "$TLF" & tail -f "$TLF" &
+	[ -z "$title" ] || printf "Playing now: $bold$title$norm\n\n"
+	nohup mpv --volume=$volume $1 &> "$TLF" & tail -f "$TLF" &
 }
 
 while true; do
 	while ! [ -z $(pidof mpv) ]; do sleep 5; done
-	echo "Choose to play: "
+	printf "\nChoose to play: \n\n"
 	[ -z $(pidof mpv) ] && id=$(ls $cachedir/*jpg | $guicmd)
-
 	id=${id:(-15)}
 	[ -z $id ] && exit 1
 	id=${id:0:(-4)}
+	title=$(echo -e "$ids" | grep "$id" | cut -d'	' -f2)
 	case $id in
 		# 11 digit id = video
 		???????????) playvid "$videolink$id" ;;
@@ -138,5 +147,4 @@ while true; do
 		*) exit ;;
 	esac
 done
-
 
