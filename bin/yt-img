@@ -17,7 +17,6 @@ format=best
 } # Colors
 
 while [ -n "$1" ]; do
-
 	case "$1" in
 	
 	-a) echo "Using only AUDIO" ; pops+=" --no-video " ;;
@@ -45,26 +44,17 @@ while [ -n "$1" ]; do
 		;;
 
 	*) echo "Option $1 not recognized" && exit 1 ;;
-
 	esac
-
 	shift
 
 done
-
 total=1
-
 for param in "$@"; do
-
 	echo "#$total: $param"
-
 	total=$(($total + 1))
-
 done
-
 echo -n "Search: "
 read -r query
-
 [ -z "$query" ] && exit 1
 query=$(sed \
 	-e 's|+|%2B|g'\
@@ -72,7 +62,6 @@ query=$(sed \
 	-e 's|&|%26|g'\
 	-e 's| |+|g'\
 	<<< "$query")
-
 response="$(curl -s "https://www.youtube.com/results?search_query=$query" |\
 	sed 's|\\.||g')"
 if ! grep -q "script" <<< "$response"; then echo "unable to fetch yt"; exit 1; fi
@@ -93,7 +82,6 @@ playlink="https://youtube.com/playlist?list="
 cachedir="/home/$USER/.local/bin/.yt-img-cache"
 [ -d $cachedir ] || mkdir -p $cachedir
 [ $flushch ] && rm $cachedir/*jpg && echo "Cache was flushed successfully" || echo "Cache wasn't flushed: man"
-
 gthumb() {
 	local id=$1
 	local imgurl=https://img.youtube.com/vi/$id/0.jpg
@@ -104,25 +92,13 @@ noch() {
 	echo "No choice given, aborting.."
 	exit 1
 }
-
-echo -e "$ids" | while read resline || [[ -n $resline ]];
-do
-	tmpid="$(printf "${resline:0:11}") "
-	printf "$tmpid" >> $cachedir/.chid
-done
-
+echo -e "$ids" | while read resline || [[ -n $resline ]]; do tmpid="$(printf "${resline:0:11}") "; printf "$tmpid" >> $cachedir/.chid; done
 clear
 echo "Fetching thumbnails..."
-for videoid in $(cat $cachedir/.chid)
-do
-	gthumb $videoid
-done
-
+for videoid in $(cat $cachedir/.chid); do gthumb $videoid; done
 echo "Flushing recvch..."
 rm $cachedir/.chid
-
-echo -e "\nm to mark a video and q to exit selector and start playing it\n\n"
-
+printf "\nm to mark a video and q to exit selector and start playing it\n\n"
 playvid() {
 	TLF="$cachedir/.logged"
 	rm "$TLF"
@@ -130,7 +106,6 @@ playvid() {
 	[ -z "$title" ] || printf "Playing now: $bold$title$norm\n\n"
 	nohup mpv --volume=$volume $1 &> "$TLF" & tail -f "$TLF" &
 }
-
 while true; do
 	while ! [ -z $(pidof mpv) ]; do sleep 5; done
 	printf "\nChoose to play: \n\n"
