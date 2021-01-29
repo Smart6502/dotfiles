@@ -58,11 +58,7 @@ case $chosen in
         fi
         ;;
     $lock)
-		if [[ -f /usr/bin/i3lock ]]; then
-			i3lock --image ~/walls/MountainsNightCamp.png
-		elif [[ -f /usr/bin/betterlockscreen ]]; then
-			betterlockscreen -l
-		fi
+		~/.local/bin/lock
         ;;
     $suspend)
 		ans=$(confirm_exit &)

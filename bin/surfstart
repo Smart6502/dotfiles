@@ -1,0 +1,10 @@
+#!/bin/sh
+
+SURF_TAB_OPTIONS="-c -k -o #2e3440 -t #2e3440"
+SURF_LOG="$HOME/.surflog"
+SITE="https://duckduckgo.com"
+
+rm $SURF_LOG
+> "$SURF_LOG"
+nohup tabbed $SURF_TAB_OPTIONS surf -e &> "$SURF_LOG" & tail -f "$SURF_LOG" &
+

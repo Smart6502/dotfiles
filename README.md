@@ -6,9 +6,5 @@
 
 <br>
 
-<img src="images/dwm1.png">
-
-<br>
-
-<img src="images/dwm2.png">
+<img src="images/bsp1.png">
 

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+read -p "Filename to save in (mkv format): " fname
+[ $fname == "" ] && exit 1
+! [ -d $HOME/screc ] && mkdir -p $HOME/screc
+ffmpeg -f x11grab -s 1920x1080 -i :0.0 "$HOME/screc/$fname.mkv"
+echo "Recorded X11 screen to $HOME/screc/$fname.mkv"
+sleep 20
+

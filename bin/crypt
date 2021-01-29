@@ -1,0 +1,27 @@
+#!/bin/sh
+# deps: gpg, tar
+
+! [ -z $(command -v) ] && exit 1
+algo="AES256"
+encom="gpg -c --no-symkey-cache --cipher-algo $algo "
+data="$1"
+
+echo "Crypt is using GPG version $(gpg --version | head -n 1 | awk '{ print $3 }')"
+echo "Crypt is checking input..."
+
+[ -f "$data" ] && dtype="FI"
+[ -d "$data" ] && dtype="FO"
+[ -z "$dtype" ] && exit 1
+
+setencryptfolder() {
+	[ "$(echo ${data: -1})" == "/" ] && data="${data::-1}"
+	echo "Packing folder into ${data}.tar"
+	tar -cf $data.tar $data/
+	echo "Packed into ${data}.tar"
+	data="${data}.tar"
+}
+
+[ "$dtype" == "FO" ] && setencryptfolder
+$encom"$data"
+
+
